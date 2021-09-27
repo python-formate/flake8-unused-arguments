@@ -9,6 +9,97 @@ import flake8.options.manager
 FunctionTypes = Union[ast.AsyncFunctionDef, ast.FunctionDef, ast.Lambda]
 LintResult = Tuple[int, int, str, str]
 
+MAGIC_METHODS = {
+        "__del__",
+        "__repr__",
+        "__str__",
+        "__bytes__",
+        "__format__",
+        "__lt__",
+        "__le__",
+        "__eq__",
+        "__ne__",
+        "__gt__",
+        "__ge__",
+        "__hash__",
+        "__bool__",
+        "__getattr__",
+        "__getattribute__",
+        "__setattr__",
+        "__delattr__",
+        "__dir__",
+        "__instancecheck__",
+        "__subclasscheck__",
+        "__class_getitem__",
+        "__len__",
+        "__length_hint__",
+        "__getitem__",
+        "__setitem__",
+        "__delitem__",
+        "__missing__",
+        "__iter__",
+        "__reversed__",
+        "__contains__",
+        "__add__",
+        "__sub__",
+        "__mul__",
+        "__matmul__",
+        "__truediv__",
+        "__floordiv__",
+        "__mod__",
+        "__divmod__",
+        "__pow__",
+        "__lshift__",
+        "__rshift__",
+        "__and__",
+        "__xor__",
+        "__or__",
+        "__radd__",
+        "__rsub__",
+        "__rmul__",
+        "__rtruediv__",
+        "__rfloordev__",
+        "__rmod__",
+        "__rdivmod__",
+        "__rpow__",
+        "__rlshift__",
+        "__rrshift__",
+        "__rand__",
+        "__rxor__",
+        "__ror__",
+        "__iadd__",
+        "__isub__",
+        "__imul__",
+        "__imatmul__",
+        "__itruediv__",
+        "__ifloordiv__",
+        "__imod__",
+        "__ipow__",
+        "__ilshift__",
+        "__irshift__",
+        "__iand__",
+        "__ixor__",
+        "__ior__",
+        "__neg__",
+        "__pos__",
+        "__abs__",
+        "__invert__",
+        "__complex__",
+        "__int__",
+        "__float__",
+        "__index__",
+        "__trunc__",
+        "__floor__",
+        "__ceil__",
+        "__enter__",
+        "__exit__",
+        "__await__",
+        "__aiter__",
+        "__anext__",
+        "__aenter__",
+        "__aexit__",
+        }
+
 
 class Plugin:
     name = "flake8-unused-arguments"
@@ -16,6 +107,7 @@ class Plugin:
 
     ignore_abstract = False
     ignore_overload = False
+    ignore_magic = False
     ignore_stubs = False
     ignore_variadic_names = False
 
@@ -43,6 +135,15 @@ class Plugin:
         )
 
         option_manager.add_option(
+            "--unused-arguments-ignore-magic-methods",
+            action="store_true",
+            parse_from_config=True,
+            default=cls.ignore_magic,
+            dest="unused_arguments_ignore_magic_methods",
+            help="If provided, then unused arguments for magic methods will be ignored.",
+        )
+
+        option_manager.add_option(
             "--unused-arguments-ignore-stub-functions",
             action="store_true",
             parse_from_config=True,
@@ -64,6 +165,7 @@ class Plugin:
     def parse_options(cls, options: optparse.Values) -> None:
         cls.ignore_abstract = options.unused_arguments_ignore_abstract_functions
         cls.ignore_overload = options.unused_arguments_ignore_overload_functions
+        cls.ignore_magic = options.unused_arguments_ignore_magic_methods
         cls.ignore_stubs = options.unused_arguments_ignore_stub_functions
         cls.ignore_variadic_names = options.unused_arguments_ignore_variadic_names
 
@@ -77,6 +179,8 @@ class Plugin:
             if self.ignore_abstract and "abstractmethod" in decorator_names:
                 continue
             if self.ignore_overload and "overload" in decorator_names:
+                continue
+            if self.ignore_magic and function.name in MAGIC_METHODS:
                 continue
 
             # ignore stub functions

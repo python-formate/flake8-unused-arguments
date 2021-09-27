@@ -190,6 +190,28 @@ def test_is_stub_function(function, expected_result):
     def foo(cls, bar):
         use(cls)
     """, {}, [(3, 13, "U100 Unused argument 'bar'", 'unused argument')]),
+    ("""
+    class Foo:
+        def __repr__(self):
+            print("hello world")
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
+    """, {"ignore_magic": True}, []),
+    ("""
+    class Foo:
+        def __repr__(self):
+            print("hello world")
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
+    """, {"ignore_magic": False}, [
+            (7, 23, "U100 Unused argument 'exc_type'", 'unused argument'),
+            (7, 33, "U100 Unused argument 'exc_val'", 'unused argument'),
+            (7, 42, "U100 Unused argument 'exc_tb'", 'unused argument'),
+            ]),
 ])
 def test_integration(function, options, expected_warnings):
     from flake8_unused_arguments import Plugin
