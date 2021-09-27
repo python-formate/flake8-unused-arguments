@@ -188,6 +188,53 @@ def test_is_stub_function(function, expected_result):
         (
             """
     @overload
+    def foo(a): ...
+    """,
+            {"ignore_overload": True},
+            [],
+        ),
+        (
+            """
+    @overload
+    def foo(a): ...
+    """,
+            {"ignore_abstract": True},
+            [],
+        ),
+        (
+            """
+    @typing.overload
+    def foo(a): ...
+    """,
+            {"ignore_overload": False},
+            [(3, 8, "U100 Unused argument 'a'", 'unused argument')],
+        ),
+        (
+            """
+    @typing.overload
+    def foo(a): ...
+    """,
+            {"ignore_overload": True},
+            [],
+        ),
+        (
+            """
+    @typing_extensions.overload
+    def foo(a): ...
+    """,
+            {"ignore_overload": False},
+            [(3, 8, "U100 Unused argument 'a'", 'unused argument')],
+        ),
+        (
+            """
+    @typing_extensions.overload
+    def foo(a): ...
+    """,
+            {"ignore_overload": True},
+            [],
+        ),
+        (
+            """
     def foo(a):
         pass
     """,
