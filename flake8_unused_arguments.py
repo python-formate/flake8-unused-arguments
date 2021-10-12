@@ -320,4 +320,5 @@ class FunctionFinder(NodeVisitor):
         self.functions.append(function)
 
     def visit_Lambda(self, function: ast.Lambda) -> None:
-        self.functions.append(function)
+        # self.functions.append(function)
+        return None
