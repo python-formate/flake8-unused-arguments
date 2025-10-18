@@ -5,7 +5,6 @@ from typing import Iterable, List, Tuple, Union
 
 import flake8.options.manager
 
-
 FunctionTypes = Union[ast.AsyncFunctionDef, ast.FunctionDef, ast.Lambda]
 LintResult = Tuple[int, int, str, str]
 
@@ -237,10 +236,14 @@ def get_decorator_names(function: FunctionTypes) -> Iterable[str]:
 
 def is_stub_function(function: FunctionTypes) -> bool:
     if isinstance(function, ast.Lambda):
-        return isinstance(function.body, ast.Ellipsis)
+        return isinstance(function.body, ast.Constant) and function.body.value is ...
 
     statement = function.body[0]
-    if isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Str):
+    if (
+        isinstance(statement, ast.Expr)
+        and isinstance(statement.value, ast.Constant)
+        and isinstance(statement.value.value, str)
+    ):
         if len(function.body) > 1:
             # first statement is a docstring, let's skip it
             statement = function.body[1]
@@ -250,7 +253,11 @@ def is_stub_function(function: FunctionTypes) -> bool:
 
     if isinstance(statement, ast.Pass):
         return True
-    if isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Ellipsis):
+    if (
+        isinstance(statement, ast.Expr)
+        and isinstance(statement.value, ast.Constant)
+        and statement.value.value is ...
+    ):
         return True
 
     if isinstance(statement, ast.Raise):
